@@ -1,5 +1,7 @@
 package com.example.stardust.facetest;
 
+import android.util.JsonReader;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.*;
@@ -14,30 +16,22 @@ import android.provider.*;
 import com.microsoft.projectoxford.face.*;
 import com.microsoft.projectoxford.face.contract.*;
 
+import static android.widget.Toast.LENGTH_LONG;
+
 public class MainActivity extends Activity {
 
     private final int PICK_IMAGE = 1;
     private ProgressDialog detectionProgressDialog;
 
-    // Replace `<API endpoint>` with the Azure region associated with
-// your subscription key. For example,
-// apiEndpoint = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0"
+    //connect to api
     private final String apiEndpoint = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0";
-//    private final String apiEndpoint = " https://westus.api.cognitive.microsoft.com/face/v1.0/detect";
-
-
-    // Replace `<Subscription Key>` with your subscription key.
-// For example, subscriptionKey = "0123456789abcdef0123456789ABCDEF"
-
     private final String subscriptionKey = "32d4ff20696443a1b9065771be9de7cc";
-
     private final FaceServiceClient faceServiceClient =
             new FaceServiceRestClient(apiEndpoint, subscriptionKey);
 
-
+    //click button to pick picture
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Toast.makeText(this,"hhhhhhhhhhhhh",Toast.LENGTH_LONG).show();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button button1 = findViewById(R.id.button1);
@@ -55,6 +49,7 @@ public class MainActivity extends Activity {
 
     }
 
+    //after choose pic,detect it
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -67,7 +62,6 @@ public class MainActivity extends Activity {
                 ImageView imageView = findViewById(R.id.imageView1);
                 imageView.setImageBitmap(bitmap);
 
-                // Comment out for tutorial
                 detectAndFrame(bitmap);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -94,11 +88,12 @@ public class MainActivity extends Activity {
                                     params[0],
                                     true,         // returnFaceId
                                     false,        // returnFaceLandmarks
-                                    null          // returnFaceAttributes:
-                                /* new FaceServiceClient.FaceAttributeType[] {
+                                       // null
+                                    // returnFaceAttributes:
+                                 new FaceServiceClient.FaceAttributeType[] {
                                     FaceServiceClient.FaceAttributeType.Age,
-                                    FaceServiceClient.FaceAttributeType.Gender }
-                                */
+                                    FaceServiceClient.FaceAttributeType.Emotion }
+
                             );
                             if (result == null){
                                 publishProgress(
@@ -108,6 +103,7 @@ public class MainActivity extends Activity {
                             publishProgress(String.format(
                                     "Detection Finished. %d face(s) detected",
                                     result.length));
+
                             return result;
                         } catch (Exception e) {
                             exceptionMessage = String.format(
@@ -134,8 +130,10 @@ public class MainActivity extends Activity {
                         if(!exceptionMessage.equals("")){
                             showError(exceptionMessage);
                         }
+
                         if (result == null) return;
 
+//画长方形的
                         ImageView imageView = findViewById(R.id.imageView1);
                         imageView.setImageBitmap(
                                 drawFaceRectanglesOnBitmap(imageBitmap, result));
@@ -155,6 +153,8 @@ public class MainActivity extends Activity {
                     }})
                 .create().show();
     }
+
+    //draw rectangle
     private static Bitmap drawFaceRectanglesOnBitmap(
             Bitmap originalBitmap, Face[] faces) {
         Bitmap bitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
@@ -173,7 +173,24 @@ public class MainActivity extends Activity {
                         faceRectangle.left + faceRectangle.width,
                         faceRectangle.top + faceRectangle.height,
                         paint);
+                double anger=face.faceAttributes.emotion.anger;
+                double contempt=face.faceAttributes.emotion.contempt;
+                double disgust=face.faceAttributes.emotion.disgust;
+                double fear=face.faceAttributes.emotion.fear;
+                double happiness=face.faceAttributes.emotion.happiness;
+                double neutral=face.faceAttributes.emotion.neutral;
+                double surprise=face.faceAttributes.emotion.surprise;
+                double sadness=face.faceAttributes.emotion.sadness;
+                Log.i("hcc",anger+"anger");
+                Log.i("hcc",contempt+"contempt");
+                Log.i("hcc",disgust+"disgust");
+                Log.i("hcc",fear+"fear");
+                Log.i("hcc",happiness+"happiness");
+                Log.i("hcc",neutral+"neutral");
+                Log.i("hcc",surprise+"surprise");
+                Log.i("hcc",sadness+"sadness");
             }
+
         }
         return bitmap;
     }
