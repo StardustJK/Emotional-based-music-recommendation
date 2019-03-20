@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button button1 = findViewById(R.id.button1);
+        //open the album
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
