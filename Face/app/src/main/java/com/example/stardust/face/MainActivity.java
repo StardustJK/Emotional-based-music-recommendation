@@ -6,6 +6,11 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -28,7 +33,38 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//手动获取权限，安卓6.0以后
+        getPermission();
+        File file = new File("/sdcard/DCIM/L.jpg");
+        byte[] buff = getBytesFromFile(file);
+        final String url = "https://api-cn.faceplusplus.com/facepp/v3/detect";
+        final HashMap<String, String> map = new HashMap<>();
+        final HashMap<String, byte[]> byteMap = new HashMap<>();
+        map.put("api_key", "xR6jiba-VXyP7QXQAfottIWPbq0ATYx5");
+        map.put("api_secret", "zMLjH919nZxU6EHSa6lCFIDr7HtXyCOW");
+        map.put("return_attributes", "emotion");
+        byteMap.put("image_file", buff);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    byte[] bacd = post(url, map, byteMap);
+                    String str = new String(bacd);
+                    Log.d("zxc",str);
+                    getEmotion(str);
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }).start();
+
+    }
+    private final static int CONNECT_TIME_OUT = 30000;
+    private final static int READ_OUT_TIME = 50000;
+    private static String boundaryString = getBoundary();
+
+    //手动获取权限，安卓6.0以后
+    public void getPermission(){
         int REQUEST_EXTERNAL_STORAGE = 1;
         String[] PERMISSIONS_STORAGE = {
                 Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -45,35 +81,27 @@ public class MainActivity extends AppCompatActivity {
             );
         }
 
-        File file = new File("/sdcard/DCIM/L.jpg");
+    }
 
-        //todo buff=null
-        byte[] buff = getBytesFromFile(file);
-        final String url = "https://api-cn.faceplusplus.com/facepp/v3/detect";
-        final HashMap<String, String> map = new HashMap<>();
-        final HashMap<String, byte[]> byteMap = new HashMap<>();
-        map.put("api_key", "xR6jiba-VXyP7QXQAfottIWPbq0ATYx5");
-        map.put("api_secret", "zMLjH919nZxU6EHSa6lCFIDr7HtXyCOW");
-        map.put("return_attributes", "emotion");
-        byteMap.put("image_file", buff);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try{
-                    byte[] bacd = post(url, map, byteMap);
-                    String str = new String(bacd);
-                    Log.d("zxc",str);
-                }catch (Exception e) {
-                    e.printStackTrace();
-                }
+    public void getEmotion(String str) throws JSONException {
+        JSONObject jsonObject=new JSONObject(str);
+        JSONArray faces_json=jsonObject.getJSONArray("faces");
+        for(int i=0;i<faces_json.length();i++){
+            JSONObject face_json=faces_json.getJSONObject(i);
+            JSONObject attributes_json=face_json.getJSONObject("attributes");
+            JSONObject emotion_json=attributes_json.getJSONObject("emotion");
+            //按照sadness，neutral，disgust，anger，surprise，fear，happiness的顺序
+            Iterator<String> iterator=emotion_json.keys();
+            Double []emotion=new Double[7];
+            int j=0;
+            while (iterator.hasNext()){
+                emotion[j]=emotion_json.getDouble(iterator.next());
+                Log.d("zxc",emotion[j]+"");
 
             }
-        }).start();
 
+        }
     }
-    private final static int CONNECT_TIME_OUT = 30000;
-    private final static int READ_OUT_TIME = 50000;
-    private static String boundaryString = getBoundary();
 
     protected static byte[] post(String url, HashMap<String, String> map, HashMap<String, byte[]> fileMap) throws Exception {
         HttpURLConnection conne;
