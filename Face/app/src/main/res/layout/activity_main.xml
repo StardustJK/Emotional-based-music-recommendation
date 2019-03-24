@@ -16,6 +16,7 @@
         app:layout_constraintTop_toTopOf="parent" />
     <Button
         android:id="@+id/btn"
+        android:text="从相册中选择图片"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

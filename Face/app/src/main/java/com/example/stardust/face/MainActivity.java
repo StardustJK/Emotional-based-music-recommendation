@@ -1,11 +1,20 @@
 package com.example.stardust.face;
 
 import android.Manifest;
+import android.content.ContentResolver;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,7 +43,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getPermission();
-        File file = new File("/sdcard/DCIM/L.jpg");
+        btn=findViewById(R.id.btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setAction(intent.ACTION_PICK);
+                intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,"image/*");
+                startActivityForResult(Intent.createChooser(
+                        intent, "Select Picture"), PICK_IMAGE);
+            }
+        });
+
+    }
+    private final static int CONNECT_TIME_OUT = 30000;
+    private final static int READ_OUT_TIME = 50000;
+    private static String boundaryString = getBoundary();
+    private Button btn;
+    private final int PICK_IMAGE = 1;
+
+    public void detectEmotion(Uri uri){
+        File file = new File(String.valueOf(uri));
         byte[] buff = getBytesFromFile(file);
         final String url = "https://api-cn.faceplusplus.com/facepp/v3/detect";
         final HashMap<String, String> map = new HashMap<>();
@@ -58,10 +87,28 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
 
+
     }
-    private final static int CONNECT_TIME_OUT = 30000;
-    private final static int READ_OUT_TIME = 50000;
-    private static String boundaryString = getBoundary();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK &&
+                data != null && data.getData() != null) {
+
+
+            //小米手机的缘故，给强制转换了
+            Uri uri = data.getData();
+            String str=Uri.decode(String.valueOf(uri));
+
+            str=str.replace("content://com.miui.gallery.open/raw//","/");
+            Log.d("hcccc","uri:"+str);
+            detectEmotion(Uri.parse(str));
+
+        }
+    }
+
+
+
 
     //手动获取权限，安卓6.0以后
     public void getPermission(){
