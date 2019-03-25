@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.util.JsonReader;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONStringer;
 
 import java.io.BufferedReader;
@@ -16,6 +19,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,60 +28,73 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d("hccc","started");
-        getJSON();
-        Log.d("hccc","done");
+        getSongList("治愈");
     }
-    private void getJSON(){
+    private void getSongList(final String str){
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String host="https://api.bzqll.com/music/netease/url?key=579621905&id=526307800&br=999000";
-//                String host="https://songsearch.kugou.com/song_search_v2?keyword=%E5%86%8D%E9%A3%9E%E8%A1%8C&page=1&pagesize=30";
-
                 HttpURLConnection connection=null;
-                try{
+
+                int offset= (int) (Math.random()*10);
+                StringBuilder host=new StringBuilder();
+                try {
+                    host.append("https://api.bzqll.com/music/netease/hotSongList?key=579621905&cat=")
+                            .append(URLEncoder.encode(str,"utf-8")).append("&limit=1&offset=").append(offset);
+                    Log.d("hccc", String.valueOf(host));
                     if(Thread.interrupted())
                         throw new InterruptedException();
 
-                    URL url=new URL(host);
+                    URL url=new URL(String.valueOf(host));
                     connection= (HttpURLConnection) url.openConnection();
                     connection.setReadTimeout(10000);
                     connection.setReadTimeout(15000);
                     connection.setRequestMethod("GET");
                     connection.setDoInput(true);
-//TODO :连接出错了
 
                     connection.connect();
-                    Log.d("hccc","connected");
                     if(Thread.interrupted())
                         throw new InterruptedException();
                     BufferedReader reader=new BufferedReader(new InputStreamReader(connection.getInputStream(),"UTF-8"));
                     String jonString=reader.readLine();
-//                    JsonReader jsonReader=reader.readLine();
                     Log.d("hcc",jonString);
 
                     reader.close();
+                    JSONObject jsonObject=new JSONObject(jonString);
+                    JSONArray jsdata=jsonObject.getJSONArray("data");
+                    Log.d("hccc", String.valueOf(jsdata));
+                    JSONObject jslist=jsdata.getJSONObject(0);
+                    Log.d("hccc", String.valueOf(jslist));
+                    String id=jslist.getString("id");
+                    Log.d("hccc",id);
 
 
 
-                } catch (MalformedURLException e) {
-                    Log.d("hccc","malfor");
-                    e.printStackTrace();
-                } catch (ProtocolException e) {
-                    Log.d("hccc","proto");
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    Log.d("hccc","ioex");
+                } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
-                    Log.d("hccc","inter");
+                    e.printStackTrace();
+                } catch (ProtocolException e) {
+                    e.printStackTrace();
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
                     e.printStackTrace();
                 } finally {
                     if(connection!=null)
                         connection.disconnect();
                 }
+
+
             }
         }).start();
+
     }
+
+    public void getSongId(final String listId){
+
+    }
+
 }
