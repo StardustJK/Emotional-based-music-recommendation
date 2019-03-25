@@ -8,6 +8,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
                         intent, "Select Picture"), PICK_IMAGE);
             }
         });
-
     }
     private final static int CONNECT_TIME_OUT = 30000;
     private final static int READ_OUT_TIME = 50000;
@@ -62,6 +64,26 @@ public class MainActivity extends AppCompatActivity {
     private Button btn;
     private final int PICK_IMAGE = 1;
 
+
+    //选择相册，获得图片uri并进行检测
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK &&
+                data != null && data.getData() != null) {
+
+            //小米手机的缘故，给强制转换了
+            Uri uri = data.getData();
+            String str=Uri.decode(String.valueOf(uri));
+            str=str.replace("content://com.miui.gallery.open/raw//","/");
+            Log.d("hcccc","uri:"+str);
+
+            detectEmotion(Uri.parse(str));
+
+        }
+    }
+
+    //post上去，获得json结果，并调用getEmotion解析
     public void detectEmotion(Uri uri){
         File file = new File(String.valueOf(uri));
         byte[] buff = getBytesFromFile(file);
@@ -89,25 +111,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK &&
-                data != null && data.getData() != null) {
-
-
-            //小米手机的缘故，给强制转换了
-            Uri uri = data.getData();
-            String str=Uri.decode(String.valueOf(uri));
-
-            str=str.replace("content://com.miui.gallery.open/raw//","/");
-            Log.d("hcccc","uri:"+str);
-            detectEmotion(Uri.parse(str));
-
-        }
-    }
-
-
 
 
     //手动获取权限，安卓6.0以后
@@ -130,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    //解析返回的json 打印表情信息
     public void getEmotion(String str) throws JSONException {
         JSONObject jsonObject=new JSONObject(str);
         JSONArray faces_json=jsonObject.getJSONArray("faces");
@@ -140,16 +144,25 @@ public class MainActivity extends AppCompatActivity {
             //按照sadness，neutral，disgust，anger，surprise，fear，happiness的顺序
             Iterator<String> iterator=emotion_json.keys();
             Double []emotion=new Double[7];
-            int j=0;
-            while (iterator.hasNext()){
-                emotion[j]=emotion_json.getDouble(iterator.next());
-                Log.d("zxc",emotion[j]+"");
 
+            int femotion=0;
+            for(int j=0;iterator.hasNext();j++){
+                emotion[j]=emotion_json.getDouble(iterator.next());
+                if(j>0&&emotion[j]>=emotion[j-1]){
+                    femotion=j;
+                }
+                Log.d("zxc",emotion[j]+"");
             }
+
+            Log.d("zxc",femotion+"");
+
+
 
         }
     }
 
+
+    //post的具体操作
     protected static byte[] post(String url, HashMap<String, String> map, HashMap<String, byte[]> fileMap) throws Exception {
         HttpURLConnection conne;
         URL url1 = new URL(url);
@@ -213,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         ins.close();
         return bytes;
     }
-
+    //将文件转成bytes文件准备上传
     public static byte[] getBytesFromFile(File f) {
         if (f == null) {
             return null;
@@ -232,10 +245,11 @@ public class MainActivity extends AppCompatActivity {
         }
         return null;
     }
-
+    //转换成bytes文件时用的
     private static String encode(String value) throws Exception{
         return URLEncoder.encode(value, "UTF-8");
     }
+    //转换成bytes文件时用的
     private static String getBoundary() {
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
