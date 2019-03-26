@@ -30,44 +30,45 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getSongList("治愈");
     }
-    private void getSongList(final String str){
+
+    private void getSongList(final String str) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                HttpURLConnection connection=null;
+                HttpURLConnection connection = null;
 
-                int offset= (int) (Math.random()*10);
-                StringBuilder host=new StringBuilder();
+                int offset = (int) (Math.random() * 10);
+                StringBuilder host = new StringBuilder();
                 try {
                     host.append("https://api.bzqll.com/music/netease/hotSongList?key=579621905&cat=")
-                            .append(URLEncoder.encode(str,"utf-8")).append("&limit=1&offset=").append(offset);
+                            .append(URLEncoder.encode(str, "utf-8")).append("&limit=1&offset=").append(offset);
                     Log.d("hccc", String.valueOf(host));
-                    if(Thread.interrupted())
+                    if (Thread.interrupted())
                         throw new InterruptedException();
 
-                    URL url=new URL(String.valueOf(host));
-                    connection= (HttpURLConnection) url.openConnection();
+                    URL url = new URL(String.valueOf(host));
+                    connection = (HttpURLConnection) url.openConnection();
                     connection.setReadTimeout(10000);
                     connection.setReadTimeout(15000);
                     connection.setRequestMethod("GET");
                     connection.setDoInput(true);
 
                     connection.connect();
-                    if(Thread.interrupted())
+                    if (Thread.interrupted())
                         throw new InterruptedException();
-                    BufferedReader reader=new BufferedReader(new InputStreamReader(connection.getInputStream(),"UTF-8"));
-                    String jonString=reader.readLine();
-                    Log.d("hcc",jonString);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+                    String jonString = reader.readLine();
+                    Log.d("hcc", jonString);
 
                     reader.close();
-                    JSONObject jsonObject=new JSONObject(jonString);
-                    JSONArray jsdata=jsonObject.getJSONArray("data");
+                    JSONObject jsonObject = new JSONObject(jonString);
+                    JSONArray jsdata = jsonObject.getJSONArray("data");
                     Log.d("hccc", String.valueOf(jsdata));
-                    JSONObject jslist=jsdata.getJSONObject(0);
+                    JSONObject jslist = jsdata.getJSONObject(0);
                     Log.d("hccc", String.valueOf(jslist));
-                    String id=jslist.getString("id");
-                    Log.d("hccc",id);
-
+                    String id = jslist.getString("id");
+                    Log.d("hccc", id);
+                    getSongId(id);
 
 
                 } catch (UnsupportedEncodingException e) {
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } finally {
-                    if(connection!=null)
+                    if (connection != null)
                         connection.disconnect();
                 }
 
@@ -93,8 +94,58 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void getSongId(final String listId){
+    public void getSongId(final String listId) {
+        HttpURLConnection connection = null;
+
+        StringBuilder host = new StringBuilder();
+        try {
+            host.append("https://api.bzqll.com/music/netease/songList?key=579621905&id=")
+                    .append(URLEncoder.encode(listId, "utf-8")).append("&limit=1&offset=0");
+            Log.d("hcccx", String.valueOf(host));
+            if (Thread.interrupted())
+                throw new InterruptedException();
+
+            URL url = new URL(String.valueOf(host));
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setReadTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setDoInput(true);
+
+            connection.connect();
+            if (Thread.interrupted())
+                throw new InterruptedException();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+            String jonString = reader.readLine();
+            Log.d("hcccx", jonString);
+
+            reader.close();
+
+
+            JSONObject jsonObject=new JSONObject(jonString);
+            JSONObject jsdata=jsonObject.getJSONObject("data");
+            int seed=jsdata.getInt("songListCount");
+            int offset = (int) (Math.random() * seed);
+            JSONArray jsSongs=jsdata.getJSONArray("songs");
+            JSONObject jssong=jsSongs.getJSONObject(offset);
+            int songid=jssong.getInt("id");
+            String songurl=jssong.getString("url");
+            Log.d("hccc", songurl);
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
     }
+    public void playSong(String url){
 
+    }
 }
