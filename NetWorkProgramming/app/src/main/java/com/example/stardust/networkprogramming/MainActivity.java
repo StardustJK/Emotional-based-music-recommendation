@@ -1,5 +1,7 @@
 package com.example.stardust.networkprogramming;
 
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,10 +26,12 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
+    private MediaPlayer mPlayer=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         getSongList("治愈");
     }
 
@@ -131,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
             int songid=jssong.getInt("id");
             String songurl=jssong.getString("url");
             Log.d("hccc", songurl);
+            playSong(songurl);
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -146,6 +151,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void playSong(String url){
-
+        mPlayer=new MediaPlayer();
+        mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        try {
+            mPlayer.setDataSource(url);
+        } catch (IOException e) {
+            Log.d("hcc","setdata");
+            e.printStackTrace();
+        }
+        try {
+            mPlayer.prepare();
+            Log.d("hcc","pd");
+        } catch (IOException e) {
+            Log.d("hcc","prepare");
+            e.printStackTrace();
+        }
+        mPlayer.start();
     }
 }
