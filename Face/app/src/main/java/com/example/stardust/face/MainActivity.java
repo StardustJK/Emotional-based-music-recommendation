@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,13 +25,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -63,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
     private static String boundaryString = getBoundary();
     private Button btn;
     private final int PICK_IMAGE = 1;
+    private MediaPlayer mPlayer=null;
+    private boolean isRelease=true;//判断MediaPlayer是否释放的标识
 
 
     //选择相册，获得图片uri并进行检测
@@ -101,7 +110,10 @@ public class MainActivity extends AppCompatActivity {
                     byte[] bacd = post(url, map, byteMap);
                     String str = new String(bacd);
                     Log.d("zxc",str);
-                    getEmotion(str);
+                    String femotion=getEmotion(str);
+                    getSongList(femotion);
+
+
                 }catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -110,7 +122,9 @@ public class MainActivity extends AppCompatActivity {
         }).start();
 
 
+
     }
+
 
 
     //手动获取权限，安卓6.0以后
@@ -134,12 +148,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //解析返回的json 打印表情信息
-    public void getEmotion(String str) throws JSONException {
+    public String getEmotion(String str) throws JSONException {
         JSONObject jsonObject=new JSONObject(str);
         JSONArray faces_json=jsonObject.getJSONArray("faces");
-        for(int i=0;i<faces_json.length();i++){
-            JSONObject face_json=faces_json.getJSONObject(i);
-            JSONObject attributes_json=face_json.getJSONObject("attributes");
+        //目前仅支持单人
+//        for(int i=0;i<faces_json.length();i++){
+//            JSONObject face_json=faces_json.getJSONObject(i);
+        JSONObject face_json=faces_json.getJSONObject(0);
+        JSONObject attributes_json=face_json.getJSONObject("attributes");
             JSONObject emotion_json=attributes_json.getJSONObject("emotion");
             //按照sadness，neutral，disgust，anger，surprise，fear，happiness的顺序
             Iterator<String> iterator=emotion_json.keys();
@@ -155,12 +171,26 @@ public class MainActivity extends AppCompatActivity {
             }
 
             Log.d("zxc",femotion+"");
+            switch (femotion){
+                case 0://sadneess
+                    return "伤感";
+                case 1://neutral
+                    return "安静";
+                case 2://disgust
+                    return "金属";//？？？
+                case 3://anger
+                    return "朋克";//？？？
+                case 4://surprise
+                    return "兴奋";
+                case 5://fear
+                    return "孤独";
+                case 6://happiness
+                    return "快乐";
+                    default:return null;
 
+            }
 
-
-        }
     }
-
 
     //post的具体操作
     protected static byte[] post(String url, HashMap<String, String> map, HashMap<String, byte[]> fileMap) throws Exception {
@@ -259,4 +289,136 @@ public class MainActivity extends AppCompatActivity {
         return sb.toString();
     }
 
+    //放音乐相关
+    private void getSongList(final String str) {
+        HttpURLConnection connection = null;
+
+        int offset = (int) (Math.random() * 10);
+        StringBuilder host = new StringBuilder();
+        try {
+            host.append("https://api.bzqll.com/music/netease/hotSongList?key=579621905&cat=")
+                    .append(URLEncoder.encode(str, "utf-8")).append("&limit=1&offset=").append(offset);
+            Log.d("hccc", String.valueOf(host));
+            if (Thread.interrupted())
+                throw new InterruptedException();
+
+            URL url = new URL(String.valueOf(host));
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setReadTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setDoInput(true);
+
+            connection.connect();
+            if (Thread.interrupted())
+                throw new InterruptedException();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+            String jonString = reader.readLine();
+            Log.d("hcc", jonString);
+
+            reader.close();
+            JSONObject jsonObject = new JSONObject(jonString);
+            JSONArray jsdata = jsonObject.getJSONArray("data");
+            Log.d("hccc", String.valueOf(jsdata));
+            JSONObject jslist = jsdata.getJSONObject(0);
+            Log.d("hccc", String.valueOf(jslist));
+            String id = jslist.getString("id");
+            Log.d("hccc", id);
+            getSongId(id);
+
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null)
+                connection.disconnect();
+        }
+
+
+    }
+
+    public void getSongId(final String listId) {
+        HttpURLConnection connection = null;
+
+        StringBuilder host = new StringBuilder();
+        try {
+            host.append("https://api.bzqll.com/music/netease/songList?key=579621905&id=")
+                    .append(URLEncoder.encode(listId, "utf-8")).append("&limit=1&offset=0");
+            Log.d("hcccx", String.valueOf(host));
+            if (Thread.interrupted())
+                throw new InterruptedException();
+
+            URL url = new URL(String.valueOf(host));
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(10000);
+            connection.setReadTimeout(15000);
+            connection.setRequestMethod("GET");
+            connection.setDoInput(true);
+
+            connection.connect();
+            if (Thread.interrupted())
+                throw new InterruptedException();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+            String jonString = reader.readLine();
+            Log.d("hcccx", jonString);
+
+            reader.close();
+
+
+            JSONObject jsonObject=new JSONObject(jonString);
+            JSONObject jsdata=jsonObject.getJSONObject("data");
+            int seed=jsdata.getInt("songListCount");
+            int offset = (int) (Math.random() * seed);
+            JSONArray jsSongs=jsdata.getJSONArray("songs");
+            JSONObject jssong=jsSongs.getJSONObject(offset);
+            int songid=jssong.getInt("id");
+            String songurl=jssong.getString("url");
+            Log.d("hccc", songurl);
+            playSong(songurl);
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void playSong(String url){
+        mPlayer=new MediaPlayer();
+        mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        try {
+            mPlayer.setDataSource(url);
+        } catch (IOException e) {
+            Log.d("hcc","setdata");
+            e.printStackTrace();
+        }
+        try {
+            mPlayer.prepare();
+            Log.d("hcc","pd");
+        } catch (IOException e) {
+            Log.d("hcc","prepare");
+            e.printStackTrace();
+        }
+        mPlayer.start();
+    }
+
+
 }
+
