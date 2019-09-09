@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"></android.support.v7.widget.RecyclerView>
+
+
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/ll_lyric_drag_container"
+        android:layout_marginLeft="@dimen/large_divider"
+        android:layout_marginRight="@dimen/large_divider"
+        android:layout_centerVertical="true"
+        android:gravity="center_vertical"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/ib_lyric_play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/ic_lyric_music_play" />
+
+        <View
+            android:layout_marginLeft="@dimen/large_divider"
+            android:layout_marginRight="@dimen/large_divider"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="@dimen/lyric_drag_line_height"
+            android:background="@color/lyric_drag_line_color"
+            ></View>
+
+        <TextView
+            tools:text="12:28"
+            android:id="@+id/tv_lyric_time"
+            android:textColor="@color/lyric_drag_line_color"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+</RelativeLayout>

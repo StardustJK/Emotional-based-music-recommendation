@@ -1,0 +1,122 @@
+apply plugin: 'com.android.application'
+
+
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.itheima.musicproject"
+        minSdkVersion 22
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            //mock
+            //buildConfigField 'String', 'ENDPOINT', '"http://rap2api.taobao.org/app/mock/14520/"'
+            //buildConfigField 'String', 'RESOURCE_PREFIX', '"http://dev-courses-misuc.ixuea.com/%s"'
+
+            //local
+//           buildConfigField 'String', 'ENDPOINT', '"http://192.168.100.106:3000/v1/"'
+            buildConfigField 'String', 'ENDPOINT', '"http://10.0.2.2:3000/v1/"'
+            buildConfigField 'String', 'RESOURCE_PREFIX', '"http://dev-courses-misuc.ixuea.com/%s"'
+
+            //dev
+            buildConfigField 'String', 'ENDPOINT', '"http://api-dev-courses-misuc.ixuea.com/v1/"'
+            buildConfigField 'String', 'RESOURCE_PREFIX', '"http://dev-courses-misuc.ixuea.com/%s"'
+
+            //qa
+            //buildConfigField 'String', 'ENDPOINT', '"http://api-qa-courses-misuc.ixuea.com/v1/"'
+            //buildConfigField 'String', 'RESOURCE_PREFIX', '"http://res-qa-courses-misuc.ixuea.com/%s"'
+
+            //prod
+            //buildConfigField 'String', 'ENDPOINT', '"http://api-courses-misuc.ixuea.com/v1/"'
+            //buildConfigField 'String', 'RESOURCE_PREFIX', '"http://res-courses-misuc.ixuea.com/%s"'
+        }
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            //prod
+            buildConfigField 'String', 'ENDPOINT', '"http://api-courses-misuc.ixuea.com/v1/"'
+            buildConfigField 'String', 'RESOURCE_PREFIX', '"http://res-courses-misuc.ixuea.com/%s"'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "com.android.support:appcompat-v7:28.0.0"
+    implementation "com.android.support:design:28.0.0"
+    //    palette
+    compile "com.android.support:palette-v7:28.0.0"
+    //    butterknife
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    //    glide
+    implementation 'com.github.bumptech.glide:glide:4.7.1'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.3.0'
+
+    //    apache common lang3
+    implementation 'org.apache.commons:commons-lang3:3.0'
+
+    //    viewPager indicator,https://github.com/ongakuer/CircleIndicator
+    implementation 'me.relex:circleindicator:1.2.2@aar'
+
+    //    cardview
+    implementation 'com.android.support:cardview-v7:28.0.0'
+
+    //    image process
+    implementation 'jp.wasabeef:glide-transformations:3.3.0'
+
+    //    okhttp
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+
+    //    banner
+    implementation 'com.youth.banner:banner:1.4.10'
+
+    //Recycler View header
+    implementation 'com.github.jdsjlzx:LRecyclerView:1.5.0'
+
+    //    okhttp，chrome sniffer packet
+    implementation 'com.facebook.stetho:stetho:1.5.0'
+    implementation 'com.facebook.stetho:stetho-okhttp3:1.5.0'
+
+    //    retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+
+    //    gson
+    implementation 'com.google.code.gson:gson:2.8.2'
+
+    //    rxjava
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
+
+    //    okhttp,sniffer packet
+    debugCompile 'com.readystatesoftware.chuck:library:1.1.0'
+    releaseCompile 'com.readystatesoftware.chuck:library-no-op:1.1.0'
+
+    //    event bus
+    implementation 'org.greenrobot:eventbus:3.1.1'
+
+    //indicator
+    implementation 'com.github.hackware1993:MagicIndicator:1.5.0'
+
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    //facedetect
+//    implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.6.0'
+
+}
